@@ -2,10 +2,10 @@
 // ABOUTME: Tests include step progression, answer persistence, accessibility features, and completion callbacks
 
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Wizard } from '../Wizard'
-import { DEFAULT_ANSWERS, Answers } from '../types'
+import { Answers } from '../types'
 
 const mockOnDone = jest.fn()
 

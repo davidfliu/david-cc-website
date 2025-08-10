@@ -2,7 +2,7 @@
 // ABOUTME: Tests cover referral link validation, click tracking, toast notifications, and proper UI states
 
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CardTile } from '../CardTile'
 import { ToastProvider } from '../Toast'
@@ -97,7 +97,7 @@ describe('CardTile', () => {
     )
 
     // FeePill should be rendered - we'll test specific fee display in FeePill tests
-    expect(document.querySelector('.fee-pill') || document.querySelector('[data-testid="fee-pill"]')).toBeTruthy
+    expect(document.querySelector('.fee-pill') || document.querySelector('[data-testid="fee-pill"]')).toBeTruthy()
   })
 
   describe('Valid referral URL functionality', () => {

@@ -25,7 +25,7 @@ describe('/api/cards', () => {
     
     expect(cards.length).toBeGreaterThan(0)
     
-    cards.forEach((card: any, index: number) => {
+    cards.forEach((card: unknown) => {
       expect(card).toHaveProperty('id')
       expect(card).toHaveProperty('name')
       expect(card).toHaveProperty('issuer')
@@ -58,8 +58,9 @@ describe('/api/cards', () => {
     
     const validCategories = ['one_card', 'dining_groceries', 'flights_hotels', 'everything_else']
     
-    cards.forEach((card: any) => {
-      card.recommendedFor.forEach((category: string) => {
+    cards.forEach((card: unknown) => {
+      const typedCard = card as { recommendedFor: string[] }
+      typedCard.recommendedFor.forEach((category: string) => {
         expect(validCategories).toContain(category)
       })
     })
@@ -69,8 +70,9 @@ describe('/api/cards', () => {
     const response = await GET()
     const cards = await response.json()
     
-    cards.forEach((card: any) => {
-      expect(card.referralUrl).toMatch(/^https?:\/\//)
+    cards.forEach((card: unknown) => {
+      const typedCard = card as { referralUrl: string }
+      expect(typedCard.referralUrl).toMatch(/^https?:\/\//)
     })
   })
 
@@ -78,7 +80,7 @@ describe('/api/cards', () => {
     const response = await GET()
     const cards = await response.json()
     
-    const ids = cards.map((card: any) => card.id)
+    const ids = cards.map((card: unknown) => (card as { id: string }).id)
     const uniqueIds = new Set(ids)
     
     expect(uniqueIds.size).toBe(ids.length)

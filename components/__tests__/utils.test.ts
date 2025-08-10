@@ -10,7 +10,7 @@ import {
   validateReferralUrl, 
   trackClick 
 } from '../utils'
-import { Card, Answers, CATEGORIES } from '../types'
+import { Card, Answers } from '../types'
 
 // Mock card data for testing
 const mockCard: Card = {
@@ -392,7 +392,7 @@ describe('trackClick', () => {
   })
 
   it('should handle missing browser APIs gracefully', () => {
-    delete (navigator as any).sendBeacon
+    delete (navigator as unknown as { sendBeacon?: unknown }).sendBeacon
 
     expect(() => {
       trackClick('apply', mockCard, mockAnswers)
@@ -404,8 +404,8 @@ describe('Edge cases and error handling', () => {
   it('should handle scoreCard with malformed card data', () => {
     const malformedCard = {
       ...mockCard,
-      recommendedFor: undefined as any,
-      annualFee: 'invalid' as any,
+      recommendedFor: undefined as unknown as string[],
+      annualFee: 'invalid' as unknown as string,
     }
 
     // Should not throw, but may return unexpected scores
@@ -414,9 +414,9 @@ describe('Edge cases and error handling', () => {
 
   it('should handle scoreCard with malformed answers', () => {
     const malformedAnswers = {
-      priority: 'invalid' as any,
-      feeComfort: undefined as any,
-      redemption: 'invalid' as any,
+      priority: 'invalid' as unknown as string,
+      feeComfort: undefined as unknown as string,
+      redemption: 'invalid' as unknown as string,
     }
 
     // Should not throw, but may return unexpected scores

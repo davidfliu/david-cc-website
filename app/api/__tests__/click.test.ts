@@ -29,7 +29,7 @@ const validPayload = {
   ua: 'Mozilla/5.0 Test Browser',
 }
 
-function createMockRequest(payload: any, options: { 
+function createMockRequest(payload: unknown, options: { 
   ip?: string
   contentLength?: string 
   headers?: Record<string, string>
