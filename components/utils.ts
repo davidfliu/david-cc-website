@@ -68,6 +68,31 @@ export function parseAnswersFromURL(): Answers | null {
   return { priority, feeComfort, redemption };
 }
 
+// Security: Validate referral URLs to prevent open redirect attacks
+const ALLOWED_REFERRAL_DOMAINS = [
+  'americanexpress.com',
+  'chase.com', 
+  'capitalone.com',
+  'citi.com',
+  'bankofamerica.com',
+  'wellsfargo.com',
+  'discover.com',
+  'usbank.com',
+  'barclays.com',
+  'hsbc.com'
+];
+
+export function validateReferralUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return ALLOWED_REFERRAL_DOMAINS.some(domain => 
+      parsedUrl.hostname === domain || parsedUrl.hostname.endsWith(`.${domain}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Track referral clicks (uses sendBeacon so it survives navigation)
 export function trackClick(action: "apply" | "copy_link", card: Card, a: Answers): void {
   try{

@@ -38,6 +38,22 @@ function validateAction(action: unknown): action is 'apply' | 'copy_link' {
   return typeof action === 'string' && ['apply', 'copy_link'].includes(action);
 }
 
+function validateAnswers(answers: unknown): answers is { priority: string; feeComfort: string; redemption: string } {
+  if (!answers || typeof answers !== 'object' || answers === null) return false;
+  
+  const a = answers as Record<string, unknown>;
+  
+  const validPriorities = ["one_card", "dining_groceries", "flights_hotels", "everything_else"];
+  const validFeeComfort = ["any", "$", "$$", "$$$", "$$$$"];
+  const validRedemption = ["points", "cashback", "simple"];
+  
+  return (
+    typeof a.priority === 'string' && validPriorities.includes(a.priority) &&
+    typeof a.feeComfort === 'string' && validFeeComfort.includes(a.feeComfort) &&
+    typeof a.redemption === 'string' && validRedemption.includes(a.redemption)
+  );
+}
+
 function validateCardId(cardId: unknown): boolean {
   return typeof cardId === 'string' && 
          cardId.length > 0 && 
@@ -75,22 +91,27 @@ export async function POST(req: NextRequest) {
       return new Response("Invalid cardId", { status: 400 });
     }
 
-    // Sanitize and validate other fields
+    // Enhanced validation and sanitization
     const sanitizedData = {
       action: body.action,
       cardId: sanitizeString(body.cardId, 100),
       cardName: sanitizeString(body.cardName, 200),
       path: sanitizeString(body.path, 500),
-      ts: typeof body.ts === 'number' && body.ts > 0 ? body.ts : Date.now(),
-      answers: body.answers && typeof body.answers === 'object' ? {
-        priority: sanitizeString(body.answers.priority, 50),
-        feeComfort: sanitizeString(body.answers.feeComfort, 20),
-        redemption: sanitizeString(body.answers.redemption, 20)
+      ts: typeof body.ts === 'number' && body.ts > 0 && body.ts <= Date.now() + 60000 ? body.ts : Date.now(), // Allow 1 minute future tolerance
+      answers: body.answers && validateAnswers(body.answers) ? {
+        priority: body.answers.priority,
+        feeComfort: body.answers.feeComfort,
+        redemption: body.answers.redemption
       } : null,
       referrer: sanitizeString(body.referrer, 300),
       ua: sanitizeString(body.ua, 500),
       clientIP: clientIP.startsWith('::ffff:') ? clientIP.substring(7) : clientIP // IPv4-mapped IPv6
     };
+
+    // Validate that we have required data
+    if (!sanitizedData.answers) {
+      return new Response("Invalid answers format", { status: 400 });
+    }
 
     // Server-side log (visible in Vercel logs)
     console.log("[dccr/click]", sanitizedData);
@@ -100,19 +121,35 @@ export async function POST(req: NextRequest) {
 
     return new Response(null, { status: 204 });
   } catch (e) {
-    console.error('Click tracking error:', e instanceof Error ? e.message : 'Unknown error');
+    // Log full error server-side but don't expose to client
+    console.error('Click tracking error:', e);
     return new Response("Bad Request", { status: 400 });
   }
 }
 
-// Cleanup old rate limit entries periodically
+// Cleanup old rate limit entries periodically with memory protection
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_ENTRIES = 10000; // Prevent unbounded growth
+
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
-    for (const [key, value] of rateLimitStore.entries()) {
+    const entries = Array.from(rateLimitStore.entries());
+    
+    // Clean expired entries
+    for (const [key, value] of entries) {
       if (now > value.resetTime) {
         rateLimitStore.delete(key);
       }
     }
-  }, 5 * 60 * 1000); // Clean up every 5 minutes
+    
+    // Emergency cleanup if too many entries remain
+    if (rateLimitStore.size > MAX_ENTRIES) {
+      const sorted = entries
+        .filter(([_, value]) => now <= value.resetTime) // Only non-expired entries
+        .sort((a, b) => a[1].resetTime - b[1].resetTime);
+      const toDelete = sorted.slice(0, rateLimitStore.size - MAX_ENTRIES);
+      toDelete.forEach(([key]) => rateLimitStore.delete(key));
+    }
+  }, CLEANUP_INTERVAL_MS);
 }
