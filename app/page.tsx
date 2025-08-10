@@ -141,14 +141,14 @@ function CardTile({ card, answers }: { card: Card; answers: Answers }) {
           target="_blank"
           rel="noreferrer"
           onClick={()=>trackClick('apply', card, answers)}
-          className="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+          className="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2"
         >
           Apply via Referral
           <IconLink className="ml-2 h-4 w-4"/>
         </a>
         <button
           onClick={() => { navigator.clipboard?.writeText(card.referralUrl); trackClick('copy_link', card, answers); }}
-          className="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-3.5 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+          className="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-3.5 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2"
         >
           Copy Link
         </button>
@@ -235,12 +235,12 @@ function ControlsBar({ query, setQuery, feeBand, setFeeBand }:{ query:string; se
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search cards (name, issuer)"
-            className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300"
+            className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2.5 pr-10 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300"
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">🔍</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {[{k:"",label:"All fees"},{k:"$",label:"$0–$95"},{k:"$$",label:"$95–$199"},{k:"$$$",label:"$200–$395"},{k:"$$$$",label:"$400+"}].map((b:any)=> (
           <button key={b.k||"all"} onClick={()=>setFeeBand(b.k)} className={`whitespace-nowrap rounded-xl px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-zinc-300 ${feeBand===b.k?"bg-zinc-900 text-white":"border border-zinc-300 text-zinc-700 hover:bg-zinc-50"}`}>{b.label}</button>
         ))}
